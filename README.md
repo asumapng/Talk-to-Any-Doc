@@ -23,9 +23,9 @@ This is a simple and powerful **PDF chatbot** that lets you interact with the co
 
 ## 🛠️ Setup Instructions
 
-- 1. Clone this repository
-- 2. Install dependencies
-- 3. Set up Gemini API key
-- 4. Run the app
-- 5. Upload a PDF and start chatting!
+1. Clone this repository
+2. Install dependencies
+3. Set up Gemini API key
+4. Run the app
+5. Upload a PDF and start chatting!
 
