@@ -279,8 +279,7 @@ uploaded_file = st.file_uploader(
     "Drag and drop your PDF here",
     type="pdf",
     key="pdf_uploader",
-    accept_multiple_files=False,
-    help="Upload a PDF document to extract text and chat with it."
+    accept_multiple_files=False
 )
 
 # --- Clear File button (appears only if a file is loaded) ---
