@@ -118,9 +118,10 @@ st.markdown(
         font-size: 0.9em !important;
         transition: background-color 0.3s ease, transform 0.3s ease !important;
     }
-    .stFileUploader span[data-testid="stFileUploadDropzone"] button:hover {
-        background-color: #357ABD !important;
-        transform: translateY(-1px) !important;
+    .stFileUploader span[data-testid="stFileUploadDropzone"] 
+    button:hover {
+        # background-color: #357ABD !important;
+        # transform: translateY(-1px) !important;
     }
 
     /* Clear File Button styling */
