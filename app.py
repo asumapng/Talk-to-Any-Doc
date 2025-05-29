@@ -33,17 +33,10 @@ if "pdf_text" not in st.session_state:
 if "file_name" not in st.session_state:
     st.session_state.file_name = ""
 
-# Configure the Gemini API key
-try:
-    model = genai.GenerativeModel('gemini-2.0-flash')
-except Exception as e:
-    st.error(f"Failed to initialize Gemini model. Ensure your API key is correctly set as an environment variable (GOOGLE_API_KEY). Error: {e}")
-    st.stop()
+# --- Streamlit Page Configuration (always runs) ---
+st.set_page_config(page_title="📝 Talk to the Doc!", layout="centered")
 
-# --- Streamlit Page Configuration ---
-st.set_page_config(page_title="📝 Talk to the Doc!", layout="centered") # Title remains "Talk to the Doc!"
-
-# --- Custom CSS for design ---
+# --- Custom CSS for design (always runs, as it affects the overall page) ---
 st.markdown(
     """
     <style>
@@ -63,10 +56,7 @@ st.markdown(
     }
 
     .css-1jc7ptx, .css-1dp5vir { /* Specific Streamlit classes for main content area */
-        background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%); /* Soft gradient background */
-        border-radius: 15px;
-        padding: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        /* These were removed in the previous step to get rid of the outer blue box */
         min-height: 85vh; /* Ensure it takes up most of the viewport height */
         display: flex;
         flex-direction: column;
@@ -74,7 +64,7 @@ st.markdown(
 
     /* Header styling */
     h1 {
-        color: #E74C3C; /* A pleasant blue */
+        color: #E74C3C; /* A pleasant red */
         text-align: center;
         font-size: 2.5em;
         margin-bottom: 0.5em;
@@ -89,6 +79,21 @@ st.markdown(
         margin-bottom: 1.5em;
     }
 
+    /* Style for the internal 'Browse files' button within the uploader (still applies) */
+    .stFileUploader span[data-testid="stFileUploadDropzone"] button {
+        background-color: #4A90E2 !important; /* Blue for 'Browse files' */
+        color: white !important;
+        border: none !important;
+        padding: 8px 15px !important;
+        border-radius: 8px !important;
+        font-size: 0.9em !important;
+        transition: background-color 0.3s ease, transform 0.3s ease !important;
+    }
+    .stFileUploader span[data-testid="stFileUploadDropzone"] button:hover {
+        background-color: #357ABD !important;
+        transform: translateY(-1px) !important;
+    }
+
     /* Clear File Button styling */
     .clear-file-button button {
         background-color: #E74C3C; /* Red fill */
@@ -99,12 +104,12 @@ st.markdown(
         transition: all 0.3s ease;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         border: none;
-        display: block; /* Ensures it takes up full width for margin auto to work */
-        margin: 10px auto; /* Centered horizontally */
-        width: fit-content; /* Adjust width to content */
+        display: block;
+        margin: 10px auto;
+        width: fit-content;
     }
     .clear-file-button button:hover {
-        background-color: #C0392B; /* Darker red on hover */
+        background-color: #C0392B;
         transform: translateY(-1px);
     }
 
@@ -113,13 +118,13 @@ st.markdown(
         background-color: #F7CAC9; /* Light red for clear */
         color: #C0392B; /* Darker red text */
         border-radius: 8px;
-        padding: 8px 15px; /* Back to original size */
-        font-size: 0.9em; /* Back to original font size */
+        padding: 8px 15px;
+        font-size: 0.9em;
         transition: all 0.3s ease;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         border: none;
-        display: block; /* For centering */
-        margin: 5px auto; /* Centered */
+        display: block;
+        margin: 5px auto;
         width: fit-content;
     }
     .clear-chat-button-global button:hover {
@@ -129,11 +134,10 @@ st.markdown(
 
     /* Chat messages container (transparent, no fixed height) */
     .chat-messages-container {
-        flex-grow: 1; /* Allows the chat area to fill available space */
-        overflow-y: auto; /* Enable scrolling for chat history if content overflows naturally */
+        flex-grow: 1;
+        overflow-y: auto;
         padding: 15px;
         border-radius: 10px;
-        /* Reverted: Removed background-color, border, box-shadow for a seamless look */
         margin-top: 20px;
         margin-bottom: 20px;
     }
@@ -141,9 +145,9 @@ st.markdown(
     /* Individual chat message styling */
     .chat-message {
         padding: 12px 18px;
-        border-radius: 20px; /* More rounded corners */
+        border-radius: 20px;
         margin-bottom: 15px;
-        max-width: 80%; /* Slightly wider messages */
+        max-width: 80%;
         word-wrap: break-word;
         font-size: 0.95em;
         line-height: 1.4;
@@ -152,54 +156,50 @@ st.markdown(
     }
 
     .user-message {
-        background-color: #c45b5b; 
+        background-color: #c45b5b;
         color: white;
-        margin-left: auto; /* Align to right */
-        border-bottom-right-radius: 5px; /* Tweak one corner for a chat bubble look */
+        margin-left: auto;
+        border-bottom-right-radius: 5px;
     }
     .bot-message {
-        background-color: #e59892; /* Bot message light gray */
+        background-color: #e59892;
         color: black;
-        margin-right: auto; /* Align to left */
-        border-bottom-left-radius: 5px; /* Tweak one corner for a chat bubble look */
+        margin-right: auto;
+        border-bottom-left-radius: 5px;
     }
 
     /* Input text area and send button - FORCING FULL WIDTH */
-    /* Target the main st.chat_input container */
     .st-chat-input {
         width: 100% !important;
-        margin-top: 10px; /* Space from chat window */
+        margin-top: 10px;
     }
-    /* Target internal divs that might be restricting width */
-    .st-chat-input > div:first-child { /* This targets the container that holds the actual text area and send button */
+    .st-chat-input > div:first-child {
         width: 100% !important;
     }
-    /* Further specific targeting for the internal input element */
-    .st-emotion-cache-1c9v6q8 { /* Specific class for the overall chat input container often used by Streamlit */
+    .st-emotion-cache-1c9v6q8 {
         width: 100% !important;
     }
-    .st-emotion-cache-12t9k89 { /* Another common internal container */
+    .st-emotion-cache-12t9k89 {
         width: 100% !important;
     }
-    .stTextInput > div:first-child > div:first-child { /* General target for the actual input box div */
+    .stTextInput > div:first-child > div:first-child {
         width: 100% !important;
     }
-    .stTextInput div div input { /* Ensure the input field itself spans */
+    .stTextInput div div input {
         width: 100% !important;
     }
-
 
     /* Loading spinner for AI thinking */
     .ai-thinking-spinner {
         display: flex;
         align-items: center;
-        justify-content: flex-start; /* Align left with bot messages */
+        justify-content: flex-start;
         margin-top: 10px;
         margin-bottom: 10px;
-        color: #E74C3C; /* Match theme */
+        color: #E74C3C;
         font-size: 0.9em;
-        gap: 8px; /* Space between text and dots */
-        padding-left: 15px; /* Indent to match bot message padding */
+        gap: 8px;
+        padding-left: 15px;
     }
 
     .ai-thinking-dots span {
@@ -221,48 +221,93 @@ st.markdown(
 
     /* Spinner for PDF processing */
     .stSpinner > div > div {
-        color: #4A90E2; /* Matching theme color */
+        color: #4A90E2;
         text-align: center;
-        width: 100%; /* Center the spinner and text */
+        width: 100%;
     }
-    .stSpinner > div > div > div { /* The actual spinner icon */
-        border-top-color: #4A90E2 !important; /* Force color change */
+    .stSpinner > div > div > div {
+        border-top-color: #4A90E2 !important;
     }
     .stSpinner {
-        text-align: center; /* Center the spinner container */
+        text-align: center;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-st.title("📝  Talk to the Doc!")
+
+st.title("📝 Talk to the Doc!")
 st.markdown("Upload a PDF document and let's discuss its content!")
 
+# --- API Key Input Section ---
+# Retrieve API key from session state or environment variable
+# Priority: 1. Input field (if filled), 2. Environment variable
+api_key_from_env = os.environ.get("GOOGLE_API_KEY")
+
+if "gemini_api_key_input" not in st.session_state:
+    st.session_state.gemini_api_key_input = "" # Initialize if not present
+
+# Use a placeholder if no env var, otherwise show masked env var
+placeholder_text = "Enter your Google Gemini API key here"
+if api_key_from_env:
+    placeholder_text = "API key loaded from environment variable (or enter new key)"
+    if not st.session_state.gemini_api_key_input: # If input is empty, pre-fill with env var if available
+        st.session_state.gemini_api_key_input = api_key_from_env
+
+gemini_api_key = st.text_input(
+    "Google Gemini API Key",
+    type="password",
+    value=st.session_state.gemini_api_key_input,
+    placeholder=placeholder_text,
+    help="You can get your API key from https://aistudio.google.com/app/apikey",
+    key="gemini_api_key_input_widget" # Use a distinct key for the widget
+)
+
+# Store the input value back into session state for persistence
+st.session_state.gemini_api_key_input = gemini_api_key
+
+current_api_key = st.session_state.gemini_api_key_input.strip() # Use the one from the input field
+
+
+# Only proceed if an API key is available
+if not current_api_key:
+    st.warning("Please enter your Google Gemini API Key to proceed.")
+    st.stop() # Stop the execution of the rest of the app
+
+# Configure the Gemini API key now that we have it
+try:
+    genai.configure(api_key=current_api_key)
+    model = genai.GenerativeModel('gemini-2.0-flash')
+    # Test a small call to ensure the key is valid (optional, but good for feedback)
+    # model.generate_content("hello", generation_config=genai.types.GenerationConfig(max_output_tokens=1))
+except Exception as e:
+    st.error(f"Failed to initialize Gemini model or API key is invalid. Error: {e}")
+    st.stop() # Stop if the API key is problematic
+
+# --- Rest of your application code goes here (it will only run if API key is valid) ---
+
 # --- File Uploader ---
-# This remains full width as it was before the columns for buttons
 uploaded_file = st.file_uploader(
-    "Drag and drop your PDF here",
+    "", # Label is empty
     type="pdf",
     key="pdf_uploader",
     accept_multiple_files=False
 )
 
 # --- Clear File button (appears only if a file is loaded) ---
-# Now it's not in columns, but is displayed if a file is loaded, centered.
 if st.session_state.file_name:
     st.markdown('<div class="clear-file-button"></div>', unsafe_allow_html=True)
     if st.button("Clear File", key="clear_file_button"):
         st.session_state.pdf_text = ""
         st.session_state.file_name = ""
-        st.rerun() # Rerun to clear the display
-
+        st.rerun()
 
 # --- PDF Processing Logic ---
 if uploaded_file is not None and uploaded_file.name != st.session_state.file_name:
-    st.session_state.pdf_text = "" # Clear previous text
+    st.session_state.pdf_text = ""
     st.session_state.file_name = uploaded_file.name
-    st.session_state.messages = [{"role": "assistant", "content": "Hello! 👋 Upload a PDF to start our conversation!"}] # Reset messages on new PDF upload
+    st.session_state.messages = [{"role": "assistant", "content": "Hello! 👋 Upload a PDF to start our conversation!"}]
 
     with st.spinner(f"✨ Processing '{uploaded_file.name}'... This might take a moment."):
         pdf_content = extract_text_from_pdf(uploaded_file)
@@ -273,7 +318,6 @@ if uploaded_file is not None and uploaded_file.name != st.session_state.file_nam
             st.session_state.messages.append({"role": "assistant", "content": "Oops! 😔 Failed to process PDF. Please try a different file."})
     st.rerun()
 
-
 # --- Global Clear Chat Button (centered, as it was before) ---
 st.markdown('<div class="clear-chat-button-global"></div>', unsafe_allow_html=True)
 if st.button("Clear Chat & Start Over", key="clear_all_button"):
@@ -282,7 +326,6 @@ if st.button("Clear Chat & Start Over", key="clear_all_button"):
     st.session_state.file_name = ""
     st.rerun()
 
-
 # --- Chat Message Display Area ---
 st.markdown('<div class="chat-messages-container">', unsafe_allow_html=True)
 for message in st.session_state.messages:
@@ -290,8 +333,7 @@ for message in st.session_state.messages:
         st.markdown(f'<div class="chat-message user-message">{message["content"]}</div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div class="chat-message bot-message">{message["content"]}</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True) # Close the chat messages container
-
+st.markdown('</div>', unsafe_allow_html=True)
 
 # --- User Input and AI Response Logic ---
 user_query = st.chat_input(
@@ -303,12 +345,9 @@ if user_query:
     if st.session_state.pdf_text == "":
         st.warning("Please upload a PDF first to start chatting.")
     else:
-        # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": user_query})
-        # Immediately display user message
-        st.markdown(f'<div class="chat-message user-message">{user_query}</div>', unsafe_allow_html=True) # Display in the current run
+        st.markdown(f'<div class="chat-message user-message">{user_query}</div>', unsafe_allow_html=True)
 
-        # Display AI thinking indicator
         ai_thinking_placeholder = st.empty()
         ai_thinking_placeholder.markdown(
             f'<div class="ai-thinking-spinner">AI is thinking <div class="ai-thinking-dots"><span></span><span></span><span></span></div></div>',
@@ -330,15 +369,12 @@ if user_query:
             response = model.generate_content(prompt)
             bot_response = response.text
 
-            # Clear thinking indicator
             ai_thinking_placeholder.empty()
-
-            # Add bot message to chat history and display it
             st.session_state.messages.append({"role": "assistant", "content": bot_response})
-            st.markdown(f'<div class="chat-message bot-message">{bot_response}</div>', unsafe_allow_html=True) # Display in the current run
+            st.markdown(f'<div class="chat-message bot-message">{bot_response}</div>', unsafe_allow_html=True)
 
         except Exception as e:
-            ai_thinking_placeholder.empty() # Clear thinking indicator
+            ai_thinking_placeholder.empty()
             st.error(f"Error communicating with Gemini API: {e}")
             st.session_state.messages.append({"role": "assistant", "content": "Sorry, I couldn't get a response from the AI. Please try again."})
             st.markdown(f'<div class="chat-message bot-message">Sorry, I couldn\'t get a response from the AI. Please try again.</div>', unsafe_allow_html=True)
