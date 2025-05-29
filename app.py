@@ -89,41 +89,6 @@ st.markdown(
         margin-bottom: 1.5em;
     }
 
-    /* File Uploader label/button styling */
-    .stFileUploader label {
-        background-color: #6A7DD5; /* A soft purple-blue */
-        color: white;
-        border-radius: 10px;
-        padding: 12px 25px;
-        font-size: 1em;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        display: block; /* Make it block level to center better */
-        margin: 0 auto; /* Center the button */
-        width: fit-content;
-    }
-    .stFileUploader label:hover {
-        background-color: #5A6DC5; /* Darker on hover */
-        transform: translateY(-2px); /* Slight lift */
-    }
-
-    /* Style for the internal 'Browse files' button within the uploader */
-    .stFileUploader span[data-testid="stFileUploadDropzone"] button {
-        background-color: #4A90E2 !important; /* Blue for 'Browse files' */
-        color: white !important;
-        border: none !important;
-        padding: 8px 15px !important;
-        border-radius: 8px !important;
-        font-size: 0.9em !important;
-        transition: background-color 0.3s ease, transform 0.3s ease !important;
-    }
-    .stFileUploader span[data-testid="stFileUploadDropzone"] 
-    button:hover {
-        # background-color: #357ABD !important;
-        # transform: translateY(-1px) !important;
-    }
-
     /* Clear File Button styling */
     .clear-file-button button {
         background-color: #E74C3C; /* Red fill */
